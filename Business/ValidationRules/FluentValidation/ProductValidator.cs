@@ -8,7 +8,7 @@ namespace Business.ValidationRules.FluentValidation
 {
     public class ProductValidator : AbstractValidator<Product>
     {
-        public ProductValidator()  // kuralları ctor içinde yazarız
+        public ProductValidator()
         {
             RuleFor(p => p.ProductName).NotEmpty();
             RuleFor(p => p.ProductName).MinimumLength(2);

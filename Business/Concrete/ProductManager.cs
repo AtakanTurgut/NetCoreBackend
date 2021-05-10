@@ -4,7 +4,7 @@ using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Caching;
-using Core.Aspects.Autofac.Transaction;//***
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Caching;
 using Core.CrossCuttingConcerns.Validation;
@@ -24,8 +24,6 @@ namespace Business.Concrete
 {
     public class ProductManager : IProductService
     {
-        // Bir EntityManager kendisi hariç başka bir dalı enjekte edemez *** 
-
         IProductDal _productDal;
         ICategoryService _categoryService;
 
@@ -35,33 +33,11 @@ namespace Business.Concrete
             _categoryService = categoryService;
         }
 
-        // [LogAspect] --> AOP
-        // [Validate]
-        // [RemoveCache]
-        // [Transaction]
-        // [Performance]
-
-        // Claim
         [SecuredOperation("product.add,admin")]
         [ValidationAspect(typeof(ProductValidator))]
         [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
-            // validation
-
-            /*
-            if (product.ProductName.Length<2)       // ProductValidator'da kullandık
-            {
-                //magic strings
-                return new ErrorResult(Messages.ProductNameInvalid);
-            }
-            */
-
-            //ValidationTool.Validate(new ProductValidator(), product);
-
-            //Bir kategoride en fazla 10 ürün olabilir
-            //Aynı isimde ürün eklenemez            
-            //Eğer mevcut kategori sayısı 15'i geçtiyse sisteme yeni ürün eklenemez  -> en aşağıda kurallarımız var
 
             IResult result =  BusinessRules.Run(CheckIfProductNameExists(product.ProductName),
                 CheckIfProductCountOfCategoryCorrect(product.CategoryId),
@@ -75,26 +51,11 @@ namespace Business.Concrete
             _productDal.Add(product);
 
             return new SuccessResult(Messages.ProductAdded);
-
-            /* bunları BusinessRules'de düzenledik
-            if (CheckIfProductCountOfCategoryCorrect(product.CategoryId).Success)
-            {
-                if (CheckIfProductNameExists(product.ProductName).Success)
-                {
-                    _productDal.Add(product);
-
-                    return new SuccessResult(Messages.ProductAdded);
-                }
-            }
-            return new ErrorResult();
-            */
         }
 
-        [CacheAspect] //key,value
+        [CacheAspect] 
         public IDataResult<List<Product>> GetAll()
         {
-            // İş Kodları
-            // Yetkisi var mı?
             if (DateTime.Now.Hour == 1)
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
@@ -142,7 +103,6 @@ namespace Business.Concrete
 
         private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
         {
-            // select count(*) from products where categoryId = 2
             var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
             if (result >= 15)
             {
@@ -171,7 +131,7 @@ namespace Business.Concrete
             return new SuccessResult();
         }
 
-        [TransactionScopeAspect]//***
+        [TransactionScopeAspect]
         public IResult AddTransactionalTest(Product product)
         {
             Add(product);

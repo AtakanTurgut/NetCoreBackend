@@ -13,12 +13,9 @@ using System.Threading.Tasks;
 namespace WebAPI.Controllers
 {
     [Route("api/[controller]")] 
-    [ApiController] // --> ATTRIBUTE
+    [ApiController]
     public class ProductsController : ControllerBase
     {
-        // Loosely coupled
-        // naming convention
-        // IoC Container -- Inversion of Control
         IProductService _productService;
 
         public ProductsController(IProductService productService)
@@ -26,14 +23,9 @@ namespace WebAPI.Controllers
             _productService = productService;
         }
 
-        //[Authorize(Roles = "Product.List")]
-        // public List<Product> Get()
         [HttpGet("getall")]
         public IActionResult GetAll()
         {
-            // Swagger 
-            // Dependency chain --
-
             Thread.Sleep(1000);
 
             var result = _productService.GetAll();
@@ -42,14 +34,6 @@ namespace WebAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
-
-            /*
-            return new List<Product>
-            {
-                new Product{ProductId = 1 , ProductName = "Elma"},
-                new Product{ProductId = 2 , ProductName = "Armut"},
-            };
-            */
         }
 
         [HttpGet("getbyid")]
